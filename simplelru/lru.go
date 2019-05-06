@@ -2,7 +2,6 @@ package simplelru
 
 import (
 	"container/list"
-	"errors"
 )
 
 // EvictCallback is used to get a callback when a cache entry is evicted
@@ -10,7 +9,7 @@ type EvictCallback func(key interface{}, value interface{})
 
 // LRU implements a non-thread safe fixed size LRU cache
 type LRU struct {
-	size      int
+	size      uint
 	evictList *list.List
 	items     map[interface{}]*list.Element
 	onEvict   EvictCallback
@@ -23,17 +22,13 @@ type entry struct {
 }
 
 // NewLRU constructs an LRU of the given size
-func NewLRU(size int, onEvict EvictCallback) (*LRU, error) {
-	if size <= 0 {
-		return nil, errors.New("Must provide a positive size")
-	}
-	c := &LRU{
+func NewLRU(size uint, onEvict EvictCallback) *LRU {
+	return &LRU{
 		size:      size,
 		evictList: list.New(),
 		items:     make(map[interface{}]*list.Element),
 		onEvict:   onEvict,
 	}
-	return c, nil
 }
 
 // Purge is used to completely clear the cache.
@@ -61,7 +56,7 @@ func (c *LRU) Add(key, value interface{}) (evicted bool) {
 	entry := c.evictList.PushFront(ent)
 	c.items[key] = entry
 
-	evict := c.evictList.Len() > c.size
+	evict := uint(c.evictList.Len()) > c.size
 	// Verify size not exceeded
 	if evict {
 		c.removeOldest()
@@ -138,8 +133,8 @@ func (c *LRU) Keys() []interface{} {
 }
 
 // Len returns the number of items in the cache.
-func (c *LRU) Len() int {
-	return c.evictList.Len()
+func (c *LRU) Len() uint {
+	return uint(c.evictList.Len())
 }
 
 // removeOldest removes the oldest item from the cache.

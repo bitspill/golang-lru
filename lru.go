@@ -13,21 +13,17 @@ type Cache struct {
 }
 
 // New creates an LRU of the given size.
-func New(size int) (*Cache, error) {
+func New(size uint) *Cache {
 	return NewWithEvict(size, nil)
 }
 
 // NewWithEvict constructs a fixed size cache with the given eviction
 // callback.
-func NewWithEvict(size int, onEvicted func(key interface{}, value interface{})) (*Cache, error) {
-	lru, err := simplelru.NewLRU(size, simplelru.EvictCallback(onEvicted))
-	if err != nil {
-		return nil, err
-	}
-	c := &Cache{
+func NewWithEvict(size uint, onEvicted func(key interface{}, value interface{})) *Cache {
+	lru := simplelru.NewLRU(size, simplelru.EvictCallback(onEvicted))
+	return &Cache{
 		lru: lru,
 	}
-	return c, nil
 }
 
 // Purge is used to completely clear the cache.
